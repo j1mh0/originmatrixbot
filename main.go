@@ -1,13 +1,15 @@
 package main
 
 import (
-	"gopkg.in/telegram-bot-api.v4"
 	"log"
 	"net/http"
+
+	"gopkg.in/telegram-bot-api.v4"
 )
 
 const (
-	botToken:="492097173:AAHF7fNIvFe_1OFgtUy3vXXKuXuGGQ04TvM"
+	botToken string = "492097173:AAHF7fNIvFe_1OFgtUy3vXXKuXuGGQ04TvM"
+	baseURL  string = "https://1e10.win:7878/"
 )
 
 func main() {
@@ -20,7 +22,7 @@ func main() {
 
 	log.Printf("Authorized on account %s", bot.Self.UserName)
 
-	_, err = bot.SetWebhook(tgbotapi.NewWebhookWithCert("https://www.google.com:8443/"+bot.Token, "cert.pem"))
+	_, err = bot.SetWebhook(tgbotapi.NewWebhookWithCert(baseURL+bot.Token, "cert.pem"))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -32,9 +34,18 @@ func main() {
 		log.Printf("[Telegram callback failed]%s", info.LastErrorMessage)
 	}
 	updates := bot.ListenForWebhook("/" + bot.Token)
-	go http.ListenAndServeTLS("0.0.0.0:8443", "cert.pem", "key.pem", nil)
+	go http.ListenAndServeTLS("0.0.0.0:7878", "cert.pem", "key.pem", nil)
 
 	for update := range updates {
-		log.Printf("%+v\n", update)
+		if update.Message == nil {
+			continue
+		}
+
+		log.Printf("[%s] %s", update.Message.From.UserName, update.Message.Text)
+
+		msg := tgbotapi.NewMessage(update.Message.Chat.ID, update.Message.Text)
+		msg.ReplyToMessageID = update.Message.MessageID
+
+		bot.Send(msg)
 	}
 }
