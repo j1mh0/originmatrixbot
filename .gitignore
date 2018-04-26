@@ -1,0 +1,6 @@
+debug
+vendor/
+.vscode/
+*.pprof
+*.out
+*.svg
