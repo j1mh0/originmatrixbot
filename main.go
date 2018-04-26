@@ -9,8 +9,8 @@ import (
 
 const (
 	botToken string = "492097173:AAHF7fNIvFe_1OFgtUy3vXXKuXuGGQ04TvM"
-	baseURL  string = "https://1e10.win:7878/"
-	port     string = "7878"
+	baseURL  string = "https://1e10.win:8443/"
+	port     string = "8443"
 )
 
 func main() {
