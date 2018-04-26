@@ -10,6 +10,7 @@ import (
 const (
 	botToken string = "492097173:AAHF7fNIvFe_1OFgtUy3vXXKuXuGGQ04TvM"
 	baseURL  string = "https://1e10.win:7878/"
+	port     string = "7878"
 )
 
 func main() {
@@ -34,7 +35,7 @@ func main() {
 		log.Printf("[Telegram callback failed]%s", info.LastErrorMessage)
 	}
 	updates := bot.ListenForWebhook("/" + bot.Token)
-	go http.ListenAndServeTLS("0.0.0.0:7878", "cert.pem", "key.pem", nil)
+	go http.ListenAndServeTLS("0.0.0.0:"+port, "cert.pem", "key.pem", nil)
 
 	for update := range updates {
 		if update.Message == nil {
