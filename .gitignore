@@ -4,3 +4,4 @@ vendor/
 *.pprof
 *.out
 *.svg
+*.pem
