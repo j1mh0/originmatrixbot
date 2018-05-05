@@ -2,6 +2,12 @@
 
 
 [[projects]]
+  name = "github.com/google/uuid"
+  packages = ["."]
+  revision = "064e2069ce9c359c118179501254f67d7d37ba24"
+  version = "0.2"
+
+[[projects]]
   name = "github.com/technoweenie/multipartstreamer"
   packages = ["."]
   revision = "a90a01d73ae432e2611d178c18367fbaa13e0154"
@@ -16,6 +22,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "4b9443e1dfa05d9e3b47f80f1a69cefe00fa167704b0bf9a05d86796a30df851"
+  inputs-digest = "7efd85dcb17d0f1529c747e426bb58903b76355ebd777dc1072b054e9a3ff06b"
   solver-name = "gps-cdcl"
   solver-version = 1

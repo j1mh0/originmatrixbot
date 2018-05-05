@@ -4,6 +4,7 @@ import (
 	"log"
 	"strings"
 
+	"github.com/google/uuid"
 	"gopkg.in/telegram-bot-api.v4"
 )
 
@@ -27,56 +28,71 @@ func main() {
 	updates, err := bot.GetUpdatesChan(u)
 
 	for update := range updates {
-		if update.Message == nil {
-			continue
+		//处理非inline模式的消息
+		if update.Message != nil {
+			command, param := procMessage(update.Message)
+			log.Printf("[%s] command = %s, param = %s", update.Message.From.UserName, command, param)
+
+			response := messageRoute(command, param)
+			log.Printf("[%s] response = %s", update.Message.From.UserName, response)
+
+			msg := tgbotapi.NewMessage(update.Message.Chat.ID, response)
+			msg.ReplyToMessageID = update.Message.MessageID
+
+			bot.Send(msg)
 		}
 
-		command, param := procMessage(update.Message.Text)
+		//处理inline模式的消息
+		if update.InlineQuery != nil {
+			log.Printf("[%s] query = %s", update.InlineQuery.From, update.InlineQuery.Query)
+			var inlineConfig tgbotapi.InlineConfig
+			inlineConfig.InlineQueryID = update.InlineQuery.ID
+			results := make([]interface{}, 0)
+			query := strings.ToLower(update.InlineQuery.Query)
+			if result := queryRoute(query); result != nil {
+				results = append(results, result)
+				inlineConfig.Results = results
+				if _, err := bot.AnswerInlineQuery(inlineConfig); err != nil {
+					log.Printf("query response error = %s", err)
+				}
+			}
+		}
 
-		log.Printf("[%s] command = %s, param = %s", update.Message.From.UserName, command, param)
-
-		response := route(command, param)
-		log.Printf("[%s] response = %s", update.Message.From.UserName, response)
-
-		msg := tgbotapi.NewMessage(update.Message.Chat.ID, response)
-		msg.ReplyToMessageID = update.Message.MessageID
-
-		bot.Send(msg)
 	}
 }
 
-func procMessage(originMessage string) (command string, param string) {
+func procMessage(originMessage *tgbotapi.Message) (command string, param string) {
 
-	command = ""
-	param = ""
-
-	message := strings.TrimSpace(originMessage)
-
-	if strings.HasPrefix(message, "/") {
-		//是一个命令
-		fields := strings.Fields(message)
-		command = strings.ToLower(fields[0])
-		if len(fields) > 1 {
-			param = fields[1]
-		}
+	if originMessage.IsCommand() {
+		command = strings.ToLower(originMessage.Command())
+		param = originMessage.CommandArguments()
 	} else {
-		//不是一个命令
-		param = message
+		param = originMessage.Text
 	}
 
 	return
 
 }
 
-func route(command string, param string) (response string) {
+func messageRoute(command string, param string) (response string) {
 	switch command {
-	case "/echo":
+	case "echo":
 		response = param
-	case "/start":
-		response = "欢迎使用OriginMatrix机器人"
+	case "start":
+		response = "Hello,I am OriginMatrix offical bot"
 	default:
 		response = param
 
+	}
+	return
+}
+
+func queryRoute(query string) (result interface{}) {
+	switch query {
+	case "test":
+		result = tgbotapi.NewInlineQueryResultArticle(uuid.New().String(), "Test Title", "Test Message")
+	default:
+		result = nil
 	}
 	return
 }
