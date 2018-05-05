@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"strings"
 
 	"gopkg.in/telegram-bot-api.v4"
 )
@@ -16,7 +17,7 @@ func main() {
 		log.Panic(err)
 	}
 
-	bot.Debug = true
+	bot.Debug = false
 
 	log.Printf("Authorized on account %s", bot.Self.UserName)
 
@@ -30,11 +31,52 @@ func main() {
 			continue
 		}
 
-		log.Printf("[%s] %s", update.Message.From.UserName, update.Message.Text)
+		command, param := procMessage(update.Message.Text)
 
-		msg := tgbotapi.NewMessage(update.Message.Chat.ID, update.Message.Text)
+		log.Printf("[%s] command = %s, param = %s", update.Message.From.UserName, command, param)
+
+		response := route(command, param)
+		log.Printf("[%s] response = %s", update.Message.From.UserName, response)
+
+		msg := tgbotapi.NewMessage(update.Message.Chat.ID, response)
 		msg.ReplyToMessageID = update.Message.MessageID
 
 		bot.Send(msg)
 	}
+}
+
+func procMessage(originMessage string) (command string, param string) {
+
+	command = ""
+	param = ""
+
+	message := strings.TrimSpace(originMessage)
+
+	if strings.HasPrefix(message, "/") {
+		//是一个命令
+		fields := strings.Fields(message)
+		command = strings.ToLower(fields[0])
+		if len(fields) > 1 {
+			param = fields[1]
+		}
+	} else {
+		//不是一个命令
+		param = message
+	}
+
+	return
+
+}
+
+func route(command string, param string) (response string) {
+	switch command {
+	case "/echo":
+		response = param
+	case "/start":
+		response = "欢迎使用OriginMatrix机器人"
+	default:
+		response = param
+
+	}
+	return
 }
